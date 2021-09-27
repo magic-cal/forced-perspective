@@ -36,17 +36,16 @@
       let controllerGrip1, controllerGrip2;
       let cameraPosition;
       let cameraRotation;
-      const socket = io("http://localhost:3000");
+      const socket = io("https://10.0.0.60:80", { secure: true });
 
-      socket.on("camera-update", function (msg) {
-        console.log(msg);
+      socket.on("camera-update", (msg) => {
         let pos = msg.pos;
         let rot = msg.rot;
         // console.log(pos);
-        console.log("before", camera.rotation);
+        // console.log("before", camera.rotation);
         camera.position.set(pos.x, pos.y, pos.z);
         camera.rotation.set(rot.x, rot.y, rot.z, rot.order);
-        console.log("after", camera.rotation);
+        // console.log("after", camera.rotation);
 
         // Make sure event is not fired again
         cameraRotation = {

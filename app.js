@@ -2,39 +2,32 @@ var express = require("express"),
   path = require("path"),
   app = express();
 
+var fs = require("fs");
 var http = require("http").Server(app);
-const io = require("socket.io")(http, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
-
+var https = require("https");
 var cors = require("cors");
+const SocketService = require("./socket");
 
-// app.use(cors());
 app.set("port", process.env.PORT || 8080);
 
 app.use(express.static("public"));
 
-app.listen(app.get("port"), function (err) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("Running on port: " + app.get("port"));
-  }
+const options = {
+  key: fs.readFileSync("key.pem", "utf8"),
+  cert: fs.readFileSync("certificate.pem", "utf8"),
+  passphrase: process.env.HTTPS_PASSPHRASE || "",
+};
+const server = https.createServer(options, app).listen(app.get("port"), () => {
+  console.log(`Listening on *:${app.get("port")}`);
 });
 
-io.on("connection", (socket) => {
-  console.log(`A user connected with socket id ${socket.id}`);
-
+const socketServer = new SocketService(80, 80);
+socketServer.startServer();
+socketServer.io.on("connection", (socket) => {
+  console.log("NEEWW");
   socket.on("camera-changed", (data) => {
     // console.log({ data });
     let update = { pos: data.pos, rot: data.rot };
     socket.broadcast.emit("camera-update", update);
   });
-});
-
-http.listen(3000, () => {
-  console.log("Listening on *:3000");
 });
