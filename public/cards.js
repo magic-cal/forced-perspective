@@ -10,7 +10,7 @@ let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
-const socket = io("https://192.168.1.31:80", { secure: true });
+const socket = io("https://10.0.0.60:80", { secure: true });
 
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
@@ -66,25 +66,72 @@ function init() {
   light.position.set(1, 1, 1).normalize();
   scene.add(light);
 
-  const geometry = new THREE.IcosahedronGeometry(radius, 3);
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
 
-  for (let i = 0; i < 200; i++) {
-    const object = new THREE.Mesh(
-      geometry,
-      new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff })
-    );
+  // for (let i = 0; i < 200; i++) {
+  // const geometry = new THREE.BoxGeometry(100, 100, 100);
+  // const edges = new THREE.EdgesGeometry(geometry);
+  // const line = new THREE.LineSegments(
+  //   edges,
+  //   new THREE.LineBasicMaterial({ color: 0xffffff })
+  // );
+  // scene.add(line);
+  const colorDark = new THREE.Color(0xb0b0b0);
+  const colorLight = new THREE.Color(0xffffff);
 
-    object.position.x = Math.random() * 4 - 2;
-    object.position.y = Math.random() * 4;
-    object.position.z = Math.random() * 4 - 2;
+  const material = new THREE.MeshPhongMaterial({
+    opacity: 0.5,
+    transparent: true,
+  });
 
-    object.userData.velocity = new THREE.Vector3();
-    object.userData.velocity.x = Math.random() * 0.01 - 0.005;
-    object.userData.velocity.y = Math.random() * 0.01 - 0.005;
-    object.userData.velocity.z = Math.random() * 0.01 - 0.005;
+  const txtLoader = new THREE.TextureLoader();
+  let card;
 
-    room.add(object);
-  }
+  let faceUpTexture = txtLoader.load("/cards/JC.svg");
+  let faceDownTexture = txtLoader.load("/cards/RED_BACK.svg");
+  // faceUpTexture.flipY = false;
+  let darkMaterial = new THREE.MeshPhongMaterial({
+    transparent: true,
+    opacity: 0,
+  });
+  let faceUpMaterial = new THREE.MeshPhongMaterial({
+    color: colorLight,
+    map: faceUpTexture,
+    transparent: true,
+
+    shininess: 40,
+  });
+  let faceDownMaterial = new THREE.MeshPhongMaterial({
+    // color: colorDark,
+    transparent: true,
+    map: faceDownTexture,
+    shininess: 40,
+  });
+  card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 0.01, 2), [
+    darkMaterial, // left
+    darkMaterial, // right
+    faceDownMaterial, // facedown
+    faceUpMaterial, // faceup
+    darkMaterial, //
+    darkMaterial, //
+  ]);
+  card.scale.x = 0.65;
+  card.castShadow = true;
+  scene.add(card);
+
+  // card.position.x = Math.random() * 4 - 2;
+  card.position.y = 1;
+  // card.position.z = Math.random() * 4 - 2;
+  // card.rotateX = 0;
+  card.rotation.x -= 90;
+
+  // object.userData.velocity = new THREE.Vector3();
+  // object.userData.velocity.x = Math.random() * 0.01 - 0.005;
+  // object.userData.velocity.y = Math.random() * 0.01 - 0.005;
+  // object.userData.velocity.z = Math.random() * 0.01 - 0.005;
+
+  // room.add(object);
+  // }
 
   //
 
@@ -154,10 +201,6 @@ function init() {
   //
 
   window.addEventListener("resize", onWindowResize);
-
-  // orbitControls.addEventListener("change", (e) => {
-  //   console.log("change, ", e);
-  // });
 }
 
 function buildController(data) {
