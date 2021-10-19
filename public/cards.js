@@ -28,7 +28,7 @@ socket.on("camera-update", (msg) => {
   cameraPosition = Object.assign({}, camera.position);
 });
 
-let room;
+// let scene;
 
 let count = 0;
 const radius = 0.08;
@@ -48,17 +48,17 @@ function init() {
     50,
     window.innerWidth / window.innerHeight,
     0.1,
-    10
+    100
   );
   camera.position.set(0, 1.6, 3);
   cameraPosition = Object.assign({}, camera.position);
 
-  room = new THREE.LineSegments(
-    new BoxLineGeometry(6, 6, 6, 10, 10, 10),
-    new THREE.LineBasicMaterial({ color: 0x808080 })
-  );
-  room.geometry.translate(0, 3, 0);
-  scene.add(room);
+  // scene = new THREE.LineSegments(
+  //   new BoxLineGeometry(6, 6, 6, 10, 10, 10),
+  //   new THREE.LineBasicMaterial({ color: 0x808080 })
+  // );
+  // scene.geometry.translate(0, 3, 0);
+  // scene.add(scene);
 
   scene.add(new THREE.HemisphereLight(0x606060, 0x404040));
 
@@ -68,14 +68,6 @@ function init() {
 
   const geometry = new THREE.BoxGeometry(1, 1, 1);
 
-  // for (let i = 0; i < 200; i++) {
-  // const geometry = new THREE.BoxGeometry(100, 100, 100);
-  // const edges = new THREE.EdgesGeometry(geometry);
-  // const line = new THREE.LineSegments(
-  //   edges,
-  //   new THREE.LineBasicMaterial({ color: 0xffffff })
-  // );
-  // scene.add(line);
   const colorDark = new THREE.Color(0xb0b0b0);
   const colorLight = new THREE.Color(0xffffff);
 
@@ -87,51 +79,80 @@ function init() {
   const txtLoader = new THREE.TextureLoader();
   let card;
 
-  let faceUpTexture = txtLoader.load("/cards/JC.svg");
   let faceDownTexture = txtLoader.load("/cards/RED_BACK.svg");
   // faceUpTexture.flipY = false;
   let darkMaterial = new THREE.MeshPhongMaterial({
     transparent: true,
     opacity: 0,
   });
-  let faceUpMaterial = new THREE.MeshPhongMaterial({
-    color: colorLight,
-    map: faceUpTexture,
-    transparent: true,
 
-    shininess: 40,
+  let transparent = new THREE.MeshPhongMaterial({
+    // transparent: true,
+    opacity: 0,
   });
+
   let faceDownMaterial = new THREE.MeshPhongMaterial({
     // color: colorDark,
     transparent: true,
     map: faceDownTexture,
     shininess: 40,
   });
-  card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 0.01, 2), [
-    darkMaterial, // left
-    darkMaterial, // right
-    faceDownMaterial, // facedown
-    faceUpMaterial, // faceup
-    darkMaterial, //
-    darkMaterial, //
-  ]);
-  card.scale.x = 0.65;
-  card.castShadow = true;
-  scene.add(card);
 
-  // card.position.x = Math.random() * 4 - 2;
-  card.position.y = 1;
-  // card.position.z = Math.random() * 4 - 2;
-  // card.rotateX = 0;
-  card.rotation.x -= 90;
+  // let pips = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
+  // let suits = ["C", "H", "S", "D"];
 
-  // object.userData.velocity = new THREE.Vector3();
-  // object.userData.velocity.x = Math.random() * 0.01 - 0.005;
-  // object.userData.velocity.y = Math.random() * 0.01 - 0.005;
-  // object.userData.velocity.z = Math.random() * 0.01 - 0.005;
+  let pips = [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11-JACK",
+    "12-QUEEN",
+    "13-KING",
+  ];
+  let suits = ["CLUB", "HEART", "SPADE", "DIAMOND"];
 
-  // room.add(object);
-  // }
+  for (const pip of pips) {
+    for (const suit of suits) {
+      let faceUpTexture = txtLoader.load(`/cards/${suit}-${pip}.svg`);
+
+      let faceUpMaterial = new THREE.MeshPhongMaterial({
+        color: colorLight,
+        map: faceUpTexture,
+        transparent: true,
+        shininess: 40,
+      });
+
+      card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 0.01, 2), [
+        darkMaterial, // left
+        darkMaterial, // right
+        faceDownMaterial, // facedown
+        faceUpMaterial, // faceup
+        darkMaterial, //
+        darkMaterial, //
+      ]);
+      card.scale.x = 0.65;
+      card.castShadow = true;
+
+      // card.position.x = Math.random() * 4 - 2;
+      card.position.y = 1;
+      // card.position.z = Math.random() * 4 - 2;
+      // card.rotateX = 0;
+      card.rotation.x -= 90;
+
+      card.position.x = Math.random() * 4 - 2;
+      card.position.y = Math.random() * 4;
+      card.position.z = Math.random() * 4 - 10;
+
+      scene.add(card);
+    }
+  }
 
   //
 
@@ -245,7 +266,7 @@ function onWindowResize() {
 
 function handleController(controller) {
   if (controller.userData.isSelecting) {
-    const object = room.children[count++];
+    const object = scene.children[count++];
 
     object.position.copy(controller.position);
     object.userData.velocity.x = (Math.random() - 0.5) * 3;
@@ -253,7 +274,7 @@ function handleController(controller) {
     object.userData.velocity.z = Math.random() - 9;
     object.userData.velocity.applyQuaternion(controller.quaternion);
 
-    if (count === room.children.length) count = 0;
+    if (count === scene.children.length) count = 0;
   }
 }
 
@@ -295,68 +316,68 @@ function render() {
 
   const range = 3 - radius;
 
-  for (let i = 0; i < room.children.length; i++) {
-    const object = room.children[i];
+  for (let i = 0; i < scene.children.length; i++) {
+    const object = scene.children[i];
 
-    object.position.x += object.userData.velocity.x * delta;
-    object.position.y += object.userData.velocity.y * delta;
-    object.position.z += object.userData.velocity.z * delta;
+    // object.position.x += object.userData.velocity.x * delta;
+    // object.position.y += object.userData.velocity.y * delta;
+    // object.position.z += object.userData.velocity.z * delta;
 
-    // keep objects inside room
+    // keep objects inside scene
 
-    if (object.position.x < -range || object.position.x > range) {
-      object.position.x = THREE.MathUtils.clamp(
-        object.position.x,
-        -range,
-        range
-      );
-      object.userData.velocity.x = -object.userData.velocity.x;
-    }
+    // if (object.position.x < -range || object.position.x > range) {
+    //   object.position.x = THREE.MathUtils.clamp(
+    //     object.position.x,
+    //     -range,
+    //     range
+    //   );
+    //   object.userData.velocity.x = -object.userData.velocity.x;
+    // }
 
-    if (object.position.y < radius || object.position.y > 6) {
-      object.position.y = Math.max(object.position.y, radius);
+    // if (object.position.y < radius || object.position.y > 6) {
+    //   object.position.y = Math.max(object.position.y, radius);
 
-      object.userData.velocity.x *= 0.98;
-      object.userData.velocity.y = -object.userData.velocity.y * 0.8;
-      object.userData.velocity.z *= 0.98;
-    }
+    //   object.userData.velocity.x *= 0.98;
+    //   object.userData.velocity.y = -object.userData.velocity.y * 0.8;
+    //   object.userData.velocity.z *= 0.98;
+    // }
 
-    if (object.position.z < -range || object.position.z > range) {
-      object.position.z = THREE.MathUtils.clamp(
-        object.position.z,
-        -range,
-        range
-      );
-      object.userData.velocity.z = -object.userData.velocity.z;
-    }
+    // if (object.position.z < -range || object.position.z > range) {
+    //   object.position.z = THREE.MathUtils.clamp(
+    //     object.position.z,
+    //     -range,
+    //     range
+    //   );
+    //   object.userData.velocity.z = -object.userData.velocity.z;
+    // }
 
-    for (let j = i + 1; j < room.children.length; j++) {
-      const object2 = room.children[j];
+    // for (let j = i + 1; j < scene.children.length; j++) {
+    //   const object2 = scene.children[j];
 
-      normal.copy(object.position).sub(object2.position);
+    //   normal.copy(object.position).sub(object2.position);
 
-      const distance = normal.length();
+    //   const distance = normal.length();
 
-      if (distance < 2 * radius) {
-        normal.multiplyScalar(0.5 * distance - radius);
+    //   if (distance < 2 * radius) {
+    //     normal.multiplyScalar(0.5 * distance - radius);
 
-        object.position.sub(normal);
-        object2.position.add(normal);
+    //     object.position.sub(normal);
+    //     object2.position.add(normal);
 
-        normal.normalize();
+    //     normal.normalize();
 
-        relativeVelocity
-          .copy(object.userData.velocity)
-          .sub(object2.userData.velocity);
+    //     relativeVelocity
+    //       .copy(object.userData.velocity)
+    //       .sub(object2.userData.velocity);
 
-        normal = normal.multiplyScalar(relativeVelocity.dot(normal));
+    //     normal = normal.multiplyScalar(relativeVelocity.dot(normal));
 
-        object.userData.velocity.sub(normal);
-        object2.userData.velocity.add(normal);
-      }
-    }
+    //     object.userData.velocity.sub(normal);
+    //     object2.userData.velocity.add(normal);
+    //   }
+    // }
 
-    object.userData.velocity.y -= 9.8 * delta;
+    // object.userData.velocity.y -= 9.8 * delta;
   }
 
   renderer.render(scene, camera);
