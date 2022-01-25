@@ -1,7 +1,6 @@
 import * as THREE from "./build/three.module.js";
 import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
 
-import { BoxLineGeometry } from "./assets/jsm/geometries/BoxLineGeometry.js";
 import { VRButton } from "./assets/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "./assets/jsm/webxr/XRControllerModelFactory.js";
 
@@ -11,6 +10,8 @@ let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
 const socket = io("https://10.0.0.60:80", { secure: true });
+
+const targets = { sphere: [] };
 
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
@@ -36,6 +37,7 @@ let normal = new THREE.Vector3();
 const relativeVelocity = new THREE.Vector3();
 
 const clock = new THREE.Clock();
+const cards = [];
 
 init();
 animate();
@@ -98,9 +100,6 @@ function init() {
     shininess: 40,
   });
 
-  // let pips = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
-  // let suits = ["C", "H", "S", "D"];
-
   let pips = [
     "1",
     "2",
@@ -117,9 +116,10 @@ function init() {
     "13-KING",
   ];
   let suits = ["CLUB", "HEART", "SPADE", "DIAMOND"];
-
+  let i = 0;
   for (const pip of pips) {
     for (const suit of suits) {
+      i++;
       let faceUpTexture = txtLoader.load(`/cards/${suit}-${pip}.svg`);
 
       let faceUpMaterial = new THREE.MeshPhongMaterial({
@@ -129,27 +129,27 @@ function init() {
         shininess: 40,
       });
 
-      card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 0.01, 2), [
-        darkMaterial, // left
-        darkMaterial, // right
-        faceDownMaterial, // facedown
-        faceUpMaterial, // faceup
-        darkMaterial, //
-        darkMaterial, //
+      card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 2, 0.01), [
+        darkMaterial,
+        darkMaterial,
+        darkMaterial,
+        darkMaterial,
+        faceUpMaterial,
+        faceDownMaterial,
       ]);
       card.scale.x = 0.65;
       card.castShadow = true;
-
-      // card.position.x = Math.random() * 4 - 2;
-      card.position.y = 1;
-      // card.position.z = Math.random() * 4 - 2;
-      // card.rotateX = 0;
-      card.rotation.x -= 90;
-
+      // card.rotation.x -= 90;
       card.position.x = Math.random() * 4 - 2;
-      card.position.y = Math.random() * 4;
+      card.position.y = Math.random() * 4 - 5;
       card.position.z = Math.random() * 4 - 10;
 
+      // card.position.x = 0.09 * i;
+      // card.position.y = 0;
+      // card.position.z = 0.05 * i;
+
+      card.lookAt(camera.position);
+      cards.push(card);
       scene.add(card);
     }
   }
@@ -222,6 +222,9 @@ function init() {
   //
 
   window.addEventListener("resize", onWindowResize);
+
+  setCardsSphere();
+  transform(targets.sphere, 2000);
 }
 
 function buildController(data) {
@@ -278,15 +281,43 @@ function handleController(controller) {
   }
 }
 
+function setCardsSphere() {
+  for (let i = 0, l = cards.length; i < l; i++) {
+    const phi = Math.acos(-1 + (2 * i) / l);
+    const theta = Math.sqrt(l * Math.PI) * phi;
+    const object = new THREE.Object3D();
+
+    object.position.setFromSphericalCoords(3, phi, theta);
+    // object.lookAt(camera.position);
+    lookAwayFrom(object, camera);
+    targets.sphere.push(object);
+  }
+}
+
+function setCardGrid() {
+  for (let i = 0; i < cards.length; i++) {
+    const object = cards[i];
+
+    object.position.x = (i % 4) * 4 - 6;
+    object.position.y = -(Math.floor(i / 4) % 13) * 2 + 8;
+    object.position.z = Math.floor(i / 13);
+    object.lookAt(camera.position);
+  }
+}
+
+function lookAwayFrom(me, target) {
+  var v = new THREE.Vector3();
+  v.subVectors(me.position, target.position).add(me.position);
+  me.lookAt(v);
+}
+
 //
 
 function animate() {
   renderer.setAnimationLoop(render);
 }
 
-function render() {
-  handleController(controller1);
-  handleController(controller2);
+function cameraMapping() {
   if (
     cameraPosition.x != camera.position.x ||
     cameraPosition.y != camera.position.y ||
@@ -309,7 +340,14 @@ function render() {
       rot: cameraRotation,
     });
   }
+}
 
+function render() {
+  handleController(controller1);
+  handleController(controller2);
+  cameraMapping();
+  // setCardsSphere();
+  // setCardGrid();
   //
 
   const delta = clock.getDelta() * 0.8; // slow down simulation
@@ -333,52 +371,45 @@ function render() {
     //   );
     //   object.userData.velocity.x = -object.userData.velocity.x;
     // }
-
-    // if (object.position.y < radius || object.position.y > 6) {
-    //   object.position.y = Math.max(object.position.y, radius);
-
-    //   object.userData.velocity.x *= 0.98;
-    //   object.userData.velocity.y = -object.userData.velocity.y * 0.8;
-    //   object.userData.velocity.z *= 0.98;
-    // }
-
-    // if (object.position.z < -range || object.position.z > range) {
-    //   object.position.z = THREE.MathUtils.clamp(
-    //     object.position.z,
-    //     -range,
-    //     range
-    //   );
-    //   object.userData.velocity.z = -object.userData.velocity.z;
-    // }
-
-    // for (let j = i + 1; j < scene.children.length; j++) {
-    //   const object2 = scene.children[j];
-
-    //   normal.copy(object.position).sub(object2.position);
-
-    //   const distance = normal.length();
-
-    //   if (distance < 2 * radius) {
-    //     normal.multiplyScalar(0.5 * distance - radius);
-
-    //     object.position.sub(normal);
-    //     object2.position.add(normal);
-
-    //     normal.normalize();
-
-    //     relativeVelocity
-    //       .copy(object.userData.velocity)
-    //       .sub(object2.userData.velocity);
-
-    //     normal = normal.multiplyScalar(relativeVelocity.dot(normal));
-
-    //     object.userData.velocity.sub(normal);
-    //     object2.userData.velocity.add(normal);
-    //   }
-    // }
-
-    // object.userData.velocity.y -= 9.8 * delta;
   }
 
   renderer.render(scene, camera);
+}
+
+function transform(targets, duration) {
+  TWEEN.removeAll();
+
+  for (let i = 0; i < cards.length; i++) {
+    const object = cards[i];
+    const target = targets[i];
+
+    new TWEEN.Tween(object.position)
+      .to(
+        {
+          x: target.position.x,
+          y: target.position.y,
+          z: target.position.z,
+        },
+        Math.random() * duration + duration
+      )
+      .easing(TWEEN.Easing.Exponential.InOut)
+      .start();
+
+    new TWEEN.Tween(object.rotation)
+      .to(
+        {
+          x: target.rotation.x,
+          y: target.rotation.y,
+          z: target.rotation.z,
+        },
+        Math.random() * duration + duration
+      )
+      .easing(TWEEN.Easing.Exponential.InOut)
+      .start();
+  }
+
+  new TWEEN.Tween(this)
+    .to({}, duration * 2)
+    .onUpdate(render)
+    .start();
 }
