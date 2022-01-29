@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import io from "socket.io-client";
+import { Boid } from "./boids";
 
 let camera, scene, renderer, orbitControls;
 let controller1, controller2;
@@ -69,27 +70,18 @@ function init() {
   light.position.set(1, 1, 1).normalize();
   scene.add(light);
 
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-
-  const colorDark = new THREE.Color(0xb0b0b0);
   const colorLight = new THREE.Color(0xffffff);
-
-  const material = new THREE.MeshPhongMaterial({
-    opacity: 0.5,
-    transparent: true,
-  });
 
   const txtLoader = new THREE.TextureLoader();
   let card;
 
   let faceDownTexture = txtLoader.load("/cards/RED_BACK.svg");
   let darkMaterial = new THREE.MeshPhongMaterial({
-    transparent: false,
+    transparent: true,
     opacity: 0,
   });
 
   let faceDownMaterial = new THREE.MeshPhongMaterial({
-    // color: colorDark,
     transparent: true,
     map: faceDownTexture,
     shininess: 40,
@@ -115,37 +107,26 @@ function init() {
   for (const pip of pips) {
     for (const suit of suits) {
       i++;
-      let faceUpTexture = txtLoader.load(`/cards/${suit}-${pip}.svg`);
 
-      let faceUpMaterial = new THREE.MeshPhongMaterial({
-        color: colorLight,
-        map: faceUpTexture,
-        transparent: true,
-        shininess: 40,
-      });
+      // card.position.x =
+      // card.position.y =
+      // card.position.z =
 
-      card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 2, 0.01), [
-        darkMaterial,
-        darkMaterial,
-        darkMaterial,
-        darkMaterial,
-        faceUpMaterial,
-        faceDownMaterial,
-      ]);
-      card.scale.x = 0.65;
-      card.castShadow = true;
-      // card.rotation.x -= 90;
-      card.position.x = Math.random() * 4 - 2;
-      card.position.y = Math.random() * 4 - 5;
-      card.position.z = Math.random() * 4 - 1;
+      const position = {
+        x: Math.random() * 4 - 2,
+        y: Math.random() * 4 - 5,
+        z: Math.random() * 4 - 1,
+      };
 
       // card.position.x = 0.09 * i;
       // card.position.y = 0;
       // card.position.z = 0.05 * i;
 
-      card.lookAt(camera.position);
-      cards.push(card);
-      scene.add(card);
+      const boid = new Boid(scene, { position: position, suit, pip });
+
+      // boid.lookAt(camera.position);
+      cards.push(boid);
+      // scene.add(card);
     }
   }
 
