@@ -9,3 +9,13 @@ This allows two screens to be directly linked providing similar content, without
 - [ ] fix jittery issues with updates
 - [ ] Provide a cleaner UI to interact with
 - [ ] Make a interface for perspective mirroring
+
+## How to run
+
+- install dependencies `npm i`
+- Run dev server BE `npm run serve`
+- go to `https://localhost:8080` or `https://<IP>:8080` - Has to be secure
+
+## Extras and Maintenance
+
+- Certs created using openssl
