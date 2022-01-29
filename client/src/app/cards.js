@@ -125,7 +125,7 @@ function init() {
       const boid = new Boid(scene, { position: position, suit, pip });
 
       // boid.lookAt(camera.position);
-      cards.push(boid);
+      // cards.push(boid);
       // scene.add(card);
     }
   }
