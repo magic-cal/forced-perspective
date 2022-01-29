@@ -14,6 +14,8 @@ const socket = io("https://192.168.1.19:80", { secure: true });
 
 const targets = { sphere: [] };
 
+const targets = { sphere: [] };
+
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
   let rot = msg.rot;
