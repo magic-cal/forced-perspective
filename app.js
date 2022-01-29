@@ -11,7 +11,11 @@ const { connect } = require("http2");
 
 app.set("port", process.env.PORT || 8080);
 
-app.use(express.static("public"));
+app.get("/", function (req, res) {
+  res.sendFile(path.join(__dirname, "/client/src/public/cards.html"));
+});
+
+app.use(express.static(path.join(__dirname, "/client")));
 
 const options = {
   key: fs.readFileSync("key.pem", "utf8"),

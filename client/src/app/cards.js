@@ -347,7 +347,7 @@ function render() {
   handleController(controller1);
   handleController(controller2);
   cameraMapping();
-  // setCardsSphere();
+  setCardsSphere();
   // setCardGrid();
   //
 

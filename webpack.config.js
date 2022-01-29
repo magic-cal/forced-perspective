@@ -10,8 +10,23 @@ module.exports = {
   },
   devServer: {
     static: {
-      directory: path.join(__dirname, "/client/src/public"),
+      directory: path.join(__dirname, "/client"),
     },
     port: 3000,
+  },
+  module: {
+    rules: [
+      {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: "svg-url-loader",
+            options: {
+              limit: 10000,
+            },
+          },
+        ],
+      },
+    ],
   },
 };
