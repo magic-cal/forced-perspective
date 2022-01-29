@@ -14,8 +14,6 @@ const socket = io("https://192.168.1.19:80", { secure: true });
 
 const targets = { sphere: [] };
 
-const targets = { sphere: [] };
-
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
   let rot = msg.rot;
@@ -85,14 +83,8 @@ function init() {
   let card;
 
   let faceDownTexture = txtLoader.load("/cards/RED_BACK.svg");
-  // faceUpTexture.flipY = false;
   let darkMaterial = new THREE.MeshPhongMaterial({
-    transparent: true,
-    opacity: 0,
-  });
-
-  let transparent = new THREE.MeshPhongMaterial({
-    // transparent: true,
+    transparent: false,
     opacity: 0,
   });
 
@@ -288,7 +280,8 @@ function setCardsSphere() {
   for (let i = 0, l = cards.length; i < l; i++) {
     const phi = Math.acos(-1 + (3 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
-    const object = cards[i];
+    const object = new THREE.Object3D();
+    // const object = cards[i];
 
     object.position.setFromSphericalCoords(3, phi, theta);
     object.lookAt(camera.position);
