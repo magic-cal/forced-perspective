@@ -1,4 +1,5 @@
 const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 // webpack config file
 module.exports = {
@@ -29,4 +30,13 @@ module.exports = {
       },
     ],
   },
+  plugins: [
+    // Re-generate index.html with injected script tag.
+    // The injected script tag contains a src value of the
+    // filename output defined above.
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: path.join(__dirname, "/client/src/public/cards.html"),
+    }),
+  ],
 };

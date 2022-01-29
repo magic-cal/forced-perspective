@@ -143,7 +143,7 @@ function init() {
       // card.rotation.x -= 90;
       card.position.x = Math.random() * 4 - 2;
       card.position.y = Math.random() * 4 - 5;
-      card.position.z = Math.random() * 4 - 10;
+      card.position.z = Math.random() * 4 - 1;
 
       // card.position.x = 0.09 * i;
       // card.position.y = 0;
@@ -284,13 +284,13 @@ function handleController(controller) {
 
 function setCardsSphere() {
   for (let i = 0, l = cards.length; i < l; i++) {
-    const phi = Math.acos(-1 + (2 * i) / l);
+    const phi = Math.acos(-1 + (3 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
-    const object = new THREE.Object3D();
+    const object = cards[i];
 
     object.position.setFromSphericalCoords(3, phi, theta);
-    // object.lookAt(camera.position);
-    lookAwayFrom(object, camera);
+    object.lookAt(camera.position);
+    // lookAwayFrom(object, camera);
     targets.sphere.push(object);
   }
 }
@@ -348,31 +348,32 @@ function render() {
   handleController(controller2);
   cameraMapping();
   setCardsSphere();
+
   // setCardGrid();
   //
 
-  const delta = clock.getDelta() * 0.8; // slow down simulation
+  // const delta = clock.getDelta() * 0.8; // slow down simulation
 
-  const range = 3 - radius;
+  // const range = 3 - radius;
 
-  for (let i = 0; i < scene.children.length; i++) {
-    const object = scene.children[i];
+  // for (let i = 0; i < scene.children.length; i++) {
+  //   const object = scene.children[i];
 
-    // object.position.x += object.userData.velocity.x * delta;
-    // object.position.y += object.userData.velocity.y * delta;
-    // object.position.z += object.userData.velocity.z * delta;
+  //   object.position.x += object.userData.velocity.x * delta;
+  //   object.position.y += object.userData.velocity.y * delta;
+  //   object.position.z += object.userData.velocity.z * delta;
 
-    // keep objects inside scene
+  //   // keep objects inside scene
 
-    // if (object.position.x < -range || object.position.x > range) {
-    //   object.position.x = THREE.MathUtils.clamp(
-    //     object.position.x,
-    //     -range,
-    //     range
-    //   );
-    //   object.userData.velocity.x = -object.userData.velocity.x;
-    // }
-  }
+  //   if (object.position.x < -range || object.position.x > range) {
+  //     object.position.x = THREE.MathUtils.clamp(
+  //       object.position.x,
+  //       -range,
+  //       range
+  //     );
+  //     object.userData.velocity.x = -object.userData.velocity.x;
+  //   }
+  // }
 
   renderer.render(scene, camera);
 }
