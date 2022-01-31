@@ -52,9 +52,10 @@ function init() {
     50,
     window.innerWidth / window.innerHeight,
     0.1,
-    100
+    500
   );
-  camera.position.set(0, 1.6, 3);
+  camera.position.set(0, 0, 50);
+  camera.zoom = 0.1;
   cameraPosition = Object.assign({}, camera.position);
 
   // scene = new THREE.LineSegments(
@@ -113,20 +114,19 @@ function init() {
       // card.position.z =
 
       const position = {
-        x: Math.random() * 4 - 2,
-        y: Math.random() * 4 - 5,
-        z: Math.random() * 4 - 1,
+        x: Math.random() * 10 - 5,
+        y: Math.random() * 5 - 5,
+        z: Math.random() * 4 - 10,
       };
 
       // card.position.x = 0.09 * i;
       // card.position.y = 0;
       // card.position.z = 0.05 * i;
 
-      const boid = new Boid(scene, { position: position, suit, pip });
+      const boid = new Boid(scene, { position, suit, pip });
 
       // boid.lookAt(camera.position);
-      // cards.push(boid);
-      // scene.add(card);
+      cards.push(boid);
     }
   }
 
@@ -199,8 +199,9 @@ function init() {
 
   window.addEventListener("resize", onWindowResize);
 
-  setCardsSphere();
-  transform(targets.sphere, 2000);
+  // setCardsSphere();
+  // transform(targets.sphere, 2000);
+  setCardsHelix();
 }
 
 function buildController(data) {
@@ -261,24 +262,55 @@ function setCardsSphere() {
   for (let i = 0, l = cards.length; i < l; i++) {
     const phi = Math.acos(-1 + (3 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
-    const object = new THREE.Object3D();
-    // const object = cards[i];
+    // const object = new THREE.Object3D();
+    const newPosition = new THREE.Vector3();
+    const object = cards[i];
 
-    object.position.setFromSphericalCoords(3, phi, theta);
-    object.lookAt(camera.position);
+    object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
+    // object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
+    // object.lookAt(camera.position);
     // lookAwayFrom(object, camera);
-    targets.sphere.push(object);
+    // targets.sphere.push(object);
+  }
+}
+
+function setCardsHelix() {
+  for (let i = 0, l = cards.length; i < l; i++) {
+    const theta = i * 0.1 + Math.PI;
+    const y = 0;
+
+    const object = cards[i];
+
+    object.moveTo(
+      object.position.setFromCylindricalCoords(100, theta, y),
+      5000,
+      object.lookAt(camera.position)
+    );
+
+    // vector.x = object.position.x * 2;
+    // vector.y = object.position.y;
+    // vector.z = object.position.z * 2;
+
+    // object.lookAt(camera.position);
+
+    // targets.helix.push(object);
   }
 }
 
 function setCardGrid() {
   for (let i = 0; i < cards.length; i++) {
     const object = cards[i];
+    let newPosition = new THREE.Vector3();
 
-    object.position.x = (i % 4) * 4 - 6;
-    object.position.y = -(Math.floor(i / 4) % 13) * 2 + 8;
-    object.position.z = Math.floor(i / 13);
-    object.lookAt(camera.position);
+    newPosition = newPosition.set(
+      (i % 4) * 4 - 6,
+      -(Math.floor(i / 4) % 13) * 2 + 8,
+      Math.floor(i / 13)
+    );
+
+    // console.log({ newPosition });
+    object.moveTo(newPosition, 10000);
+    // object.lookAt(camera.position);
   }
 }
 
@@ -323,7 +355,13 @@ function render() {
   handleController(controller1);
   handleController(controller2);
   cameraMapping();
-  setCardsSphere();
+  // setCardsSphere();
+  // setCardGrid();
+  // setCardsHelix();
+  TWEEN.update();
+  // for (let card of cards) {
+  // card.step(1);
+  // }
 
   // setCardGrid();
   //
