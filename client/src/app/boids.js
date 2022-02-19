@@ -3,6 +3,7 @@ import { randomNumber } from "./utils";
 import TWEEN from "@tweenjs/tween.js";
 
 const defaultParams = {
+  sizing: { x: 20, y: 20, z: 0.1 },
   position: { x: 0, y: 0, z: 0 },
   velocity: { x: 0.01, y: 0.01, z: 0.01 },
   acceleration: { x: 0.01, y: 0, z: 0 },
@@ -58,6 +59,8 @@ export class Boid extends THREE.Object3D {
       `/cards/${this.params.suit}-${this.params.pip}.svg`
     );
 
+    this.name = `${this.params.suit}-${this.params.pip}`;
+
     let faceUpMaterial = new THREE.MeshPhongMaterial({
       color: colorLight,
       map: faceUpTexture,
@@ -90,14 +93,21 @@ export class Boid extends THREE.Object3D {
       this.params.acceleration.y,
       this.params.acceleration.z
     );
-    this.mesh = new THREE.Mesh(new THREE.BoxBufferGeometry(20, 20, 0.1), [
-      darkMaterial,
-      darkMaterial,
-      darkMaterial,
-      darkMaterial,
-      faceUpMaterial,
-      faceDownMaterial,
-    ]);
+    this.mesh = new THREE.Mesh(
+      new THREE.BoxBufferGeometry(
+        this.params.sizing.x,
+        this.params.sizing.y,
+        this.params.sizing.z
+      ),
+      [
+        darkMaterial,
+        darkMaterial,
+        darkMaterial,
+        darkMaterial,
+        faceUpMaterial,
+        faceDownMaterial,
+      ]
+    );
 
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
@@ -127,8 +137,22 @@ export class Boid extends THREE.Object3D {
     this.group.lookAt(target);
   }
 
-  moveTo(target, duration, callback = () => console.log("done")) {
-    let tween = new TWEEN.Tween(this.group.position)
+  moveTo(target, duration, facingDirection, callback) {
+    new TWEEN.Tween(this.group.position)
+      .to(target, duration)
+      .easing(TWEEN.Easing.Quadratic.InOut)
+      .onUpdate(() => {
+        this.group.lookAt(facingDirection);
+      })
+      .onComplete(() => {
+        this.group.lookAt(facingDirection);
+        if (callback) callback();
+      })
+      .start();
+  }
+
+  lookTo(target, duration, callback = () => console.log("done")) {
+    let tween = new TWEEN.Tween(this.group.rotation)
       .to(target, duration)
       .easing(TWEEN.Easing.Quadratic.InOut)
       .start();

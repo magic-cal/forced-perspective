@@ -11,9 +11,10 @@ let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
-const socket = io("https://192.168.1.19:80", { secure: true });
+const socket = io("https://localhost:80", { secure: true });
 
 const targets = { sphere: [] };
+const cardSizing = { x: 20, y: 20, z: 0.1 };
 
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
@@ -44,7 +45,7 @@ const cards = [];
 init();
 animate();
 
-function init() {
+async function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x505050);
 
@@ -125,7 +126,7 @@ function init() {
 
       const boid = new Boid(scene, { position, suit, pip });
 
-      // boid.lookAt(camera.position);
+      boid.lookAt(camera.position);
       cards.push(boid);
     }
   }
@@ -142,8 +143,13 @@ function init() {
 
   //
 
-  document.body.appendChild(VRButton.createButton(renderer));
-
+  if (
+    "xr" in navigator &&
+    (await navigator.xr?.isSessionSupported("immersive-vr"))
+  ) {
+    console.log("XR supported");
+    document.body.appendChild(VRButton.createButton(renderer));
+  }
   // controllers
 
   function onSelectStart() {
@@ -198,10 +204,6 @@ function init() {
   //
 
   window.addEventListener("resize", onWindowResize);
-
-  // setCardsSphere();
-  // transform(targets.sphere, 2000);
-  setCardsHelix();
 }
 
 function buildController(data) {
@@ -284,7 +286,7 @@ function setCardsHelix() {
     object.moveTo(
       object.position.setFromCylindricalCoords(50, theta, y),
       5000,
-      object.lookAt(camera.position)
+      camera.position
     );
 
     // vector.x = object.position.x * 2;
@@ -297,20 +299,28 @@ function setCardsHelix() {
   }
 }
 
-function setCardGrid() {
+function setCardGrid(
+  cardWidthOffset = 15,
+  cardZOffset = 13,
+  cardsPerRow = 4,
+  duration = 10000
+) {
+  const cardWidth = 12;
   for (let i = 0; i < cards.length; i++) {
     const object = cards[i];
     let newPosition = new THREE.Vector3();
 
     newPosition = newPosition.set(
-      (i % 4) * 4 - 6,
-      -(Math.floor(i / 4) % 13) * 2 + 8,
-      Math.floor(i / 13)
+      (i % cardsPerRow) * cardWidthOffset - 1.5 * cardWidthOffset,
+      0,
+      -Math.floor(i / cardsPerRow) * cardZOffset
     );
 
     // console.log({ newPosition });
-    object.moveTo(newPosition, 10000);
-    // object.lookAt(camera.position);
+    const lookAtPosition = newPosition
+      .clone()
+      .add(new THREE.Vector3(0, 0, 1000));
+    object.moveTo(newPosition, duration, lookAtPosition);
   }
 }
 
@@ -355,9 +365,6 @@ function render() {
   handleController(controller1);
   handleController(controller2);
   cameraMapping();
-  // setCardsSphere();
-  // setCardGrid();
-  // setCardsHelix();
   TWEEN.update();
   // for (let card of cards) {
   // card.step(1);
@@ -429,3 +436,12 @@ function transform(targets, duration) {
     .onUpdate(render)
     .start();
 }
+// table sphere helix grid
+const buttonIds = ["table", "sphere", "helix", "grid"];
+buttonIds.forEach((id) => {
+  // @FIXME: generic
+  document.getElementById(id).addEventListener("click", () => {
+    setCardGrid(undefined, undefined, undefined, 1000);
+  });
+});
+setCardGrid(undefined, 0.01);
