@@ -4,15 +4,17 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import io from "socket.io-client";
+import { Boid } from "./boids";
 
 let camera, scene, renderer, orbitControls;
 let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
-const socket = io("https://192.168.1.19:80", { secure: true });
+const socket = io("https://localhost:80", { secure: true });
 
 const targets = { sphere: [] };
+const cardSizing = { x: 20, y: 20, z: 0.1 };
 
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
@@ -43,7 +45,7 @@ const cards = [];
 init();
 animate();
 
-function init() {
+async function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x505050);
 
@@ -51,9 +53,10 @@ function init() {
     50,
     window.innerWidth / window.innerHeight,
     0.1,
-    100
+    500
   );
-  camera.position.set(0, 1.6, 3);
+  camera.position.set(0, 0, 50);
+  camera.zoom = 0.1;
   cameraPosition = Object.assign({}, camera.position);
 
   // scene = new THREE.LineSegments(
@@ -69,27 +72,18 @@ function init() {
   light.position.set(1, 1, 1).normalize();
   scene.add(light);
 
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-
-  const colorDark = new THREE.Color(0xb0b0b0);
   const colorLight = new THREE.Color(0xffffff);
-
-  const material = new THREE.MeshPhongMaterial({
-    opacity: 0.5,
-    transparent: true,
-  });
 
   const txtLoader = new THREE.TextureLoader();
   let card;
 
   let faceDownTexture = txtLoader.load("/cards/RED_BACK.svg");
   let darkMaterial = new THREE.MeshPhongMaterial({
-    transparent: false,
+    transparent: true,
     opacity: 0,
   });
 
   let faceDownMaterial = new THREE.MeshPhongMaterial({
-    // color: colorDark,
     transparent: true,
     map: faceDownTexture,
     shininess: 40,
@@ -115,37 +109,25 @@ function init() {
   for (const pip of pips) {
     for (const suit of suits) {
       i++;
-      let faceUpTexture = txtLoader.load(`/cards/${suit}-${pip}.svg`);
 
-      let faceUpMaterial = new THREE.MeshPhongMaterial({
-        color: colorLight,
-        map: faceUpTexture,
-        transparent: true,
-        shininess: 40,
-      });
+      // card.position.x =
+      // card.position.y =
+      // card.position.z =
 
-      card = new THREE.Mesh(new THREE.BoxBufferGeometry(2, 2, 0.01), [
-        darkMaterial,
-        darkMaterial,
-        darkMaterial,
-        darkMaterial,
-        faceUpMaterial,
-        faceDownMaterial,
-      ]);
-      card.scale.x = 0.65;
-      card.castShadow = true;
-      // card.rotation.x -= 90;
-      card.position.x = Math.random() * 4 - 2;
-      card.position.y = Math.random() * 4 - 5;
-      card.position.z = Math.random() * 4 - 1;
+      const position = {
+        x: Math.random() * 10 - 5,
+        y: Math.random() * 5 - 5,
+        z: Math.random() * 4 - 10,
+      };
 
       // card.position.x = 0.09 * i;
       // card.position.y = 0;
       // card.position.z = 0.05 * i;
 
-      card.lookAt(camera.position);
-      cards.push(card);
-      scene.add(card);
+      const boid = new Boid(scene, { position, suit, pip });
+
+      boid.lookAt(camera.position);
+      cards.push(boid);
     }
   }
 
@@ -161,8 +143,13 @@ function init() {
 
   //
 
-  document.body.appendChild(VRButton.createButton(renderer));
-
+  if (
+    "xr" in navigator &&
+    (await navigator.xr?.isSessionSupported("immersive-vr"))
+  ) {
+    console.log("XR supported");
+    document.body.appendChild(VRButton.createButton(renderer));
+  }
   // controllers
 
   function onSelectStart() {
@@ -217,9 +204,6 @@ function init() {
   //
 
   window.addEventListener("resize", onWindowResize);
-
-  setCardsSphere();
-  transform(targets.sphere, 2000);
 }
 
 function buildController(data) {
@@ -280,24 +264,63 @@ function setCardsSphere() {
   for (let i = 0, l = cards.length; i < l; i++) {
     const phi = Math.acos(-1 + (3 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
-    const object = new THREE.Object3D();
-    // const object = cards[i];
+    // const object = new THREE.Object3D();
+    const newPosition = new THREE.Vector3();
+    const object = cards[i];
 
-    object.position.setFromSphericalCoords(3, phi, theta);
-    object.lookAt(camera.position);
+    object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
+    // object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
+    // object.lookAt(camera.position);
     // lookAwayFrom(object, camera);
-    targets.sphere.push(object);
+    // targets.sphere.push(object);
   }
 }
 
-function setCardGrid() {
-  for (let i = 0; i < cards.length; i++) {
+function setCardsHelix() {
+  for (let i = 0, l = cards.length; i < l; i++) {
+    const theta = i * 0.119 + Math.PI;
+    const y = 0;
+
     const object = cards[i];
 
-    object.position.x = (i % 4) * 4 - 6;
-    object.position.y = -(Math.floor(i / 4) % 13) * 2 + 8;
-    object.position.z = Math.floor(i / 13);
-    object.lookAt(camera.position);
+    object.moveTo(
+      object.position.setFromCylindricalCoords(50, theta, y),
+      5000,
+      camera.position
+    );
+
+    // vector.x = object.position.x * 2;
+    // vector.y = object.position.y;
+    // vector.z = object.position.z * 2;
+
+    // object.lookAt(camera.position);
+
+    // targets.helix.push(object);
+  }
+}
+
+function setCardGrid(
+  cardWidthOffset = 15,
+  cardZOffset = 13,
+  cardsPerRow = 4,
+  duration = 10000
+) {
+  const cardWidth = 12;
+  for (let i = 0; i < cards.length; i++) {
+    const object = cards[i];
+    let newPosition = new THREE.Vector3();
+
+    newPosition = newPosition.set(
+      (i % cardsPerRow) * cardWidthOffset - 1.5 * cardWidthOffset,
+      0,
+      -Math.floor(i / cardsPerRow) * cardZOffset
+    );
+
+    // console.log({ newPosition });
+    const lookAtPosition = newPosition
+      .clone()
+      .add(new THREE.Vector3(0, 0, 1000));
+    object.moveTo(newPosition, duration, lookAtPosition);
   }
 }
 
@@ -342,7 +365,10 @@ function render() {
   handleController(controller1);
   handleController(controller2);
   cameraMapping();
-  setCardsSphere();
+  TWEEN.update();
+  // for (let card of cards) {
+  // card.step(1);
+  // }
 
   // setCardGrid();
   //
@@ -410,3 +436,12 @@ function transform(targets, duration) {
     .onUpdate(render)
     .start();
 }
+// table sphere helix grid
+const buttonIds = ["table", "sphere", "helix", "grid"];
+buttonIds.forEach((id) => {
+  // @FIXME: generic
+  document.getElementById(id).addEventListener("click", () => {
+    setCardGrid(undefined, undefined, undefined, 1000);
+  });
+});
+setCardGrid(undefined, 0.01);

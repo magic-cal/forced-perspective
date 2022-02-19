@@ -23,7 +23,7 @@ const options = {
   passphrase: process.env.HTTPS_PASSPHRASE || "",
 };
 const server = https.createServer(options, app).listen(app.get("port"), () => {
-  console.log(`Listening on *:${app.get("port")}`);
+  // console.log(`Listening on *:${app.get("port")}`);
 });
 
 const socketServer = new SocketService(80, 80);

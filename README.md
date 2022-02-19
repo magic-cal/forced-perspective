@@ -12,7 +12,7 @@ This allows two screens to be directly linked providing similar content, without
 
 ## How to run
 
-- install dependencies `npm i`
+- install dependencies `npm install`
 - Run dev server BE `npm run serve`
 - go to `https://localhost:8080` or `https://<IP>:8080` - Has to be secure
 
