@@ -131,8 +131,8 @@ export class Boid extends THREE.Object3D {
     let tween = new TWEEN.Tween(this.group.position)
       .to(target, duration)
       .easing(TWEEN.Easing.Quadratic.InOut)
-      .start()
-      .callback(callback);
+      .start();
+    //   .callback(callback);
   }
 
   step(time) {

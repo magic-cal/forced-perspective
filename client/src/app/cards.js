@@ -276,13 +276,13 @@ function setCardsSphere() {
 
 function setCardsHelix() {
   for (let i = 0, l = cards.length; i < l; i++) {
-    const theta = i * 0.1 + Math.PI;
+    const theta = i * 0.119 + Math.PI;
     const y = 0;
 
     const object = cards[i];
 
     object.moveTo(
-      object.position.setFromCylindricalCoords(100, theta, y),
+      object.position.setFromCylindricalCoords(50, theta, y),
       5000,
       object.lookAt(camera.position)
     );
