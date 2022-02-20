@@ -138,15 +138,21 @@ export class Boid extends THREE.Object3D {
   }
 
   moveTo(target, duration, facingDirection, callback) {
-    new TWEEN.Tween(this.group.position)
+    if (this.tween) this.tween.stop();
+    this.tween = new TWEEN.Tween(this.group.position)
       .to(target, duration)
       .easing(TWEEN.Easing.Quadratic.InOut)
       .onUpdate(() => {
-        this.group.lookAt(facingDirection);
+        if (facingDirection) {
+          this.group.lookAt(facingDirection);
+        }
       })
       .onComplete(() => {
-        this.group.lookAt(facingDirection);
+        if (facingDirection) {
+          this.group.lookAt(facingDirection);
+        }
         if (callback) callback();
+        this.tween = null;
       })
       .start();
   }

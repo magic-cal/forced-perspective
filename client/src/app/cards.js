@@ -45,7 +45,7 @@ const cards = [];
 init();
 animate();
 
-async function init() {
+function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x505050);
 
@@ -100,11 +100,11 @@ async function init() {
     "8",
     "9",
     "10",
-    "11-JACK",
-    "12-QUEEN",
-    "13-KING",
+    "11",
+    "12",
+    "13",
   ];
-  let suits = ["CLUB", "HEART", "SPADE", "DIAMOND"];
+  let suits = ["C", "H", "S", "D"];
   let i = 0;
   for (const pip of pips) {
     for (const suit of suits) {
@@ -143,13 +143,10 @@ async function init() {
 
   //
 
-  if (
-    "xr" in navigator &&
-    (await navigator.xr?.isSessionSupported("immersive-vr"))
-  ) {
-    console.log("XR supported");
-    document.body.appendChild(VRButton.createButton(renderer));
-  }
+  // if ('xr' in navigator  &&navigator.xr?.isSessionSupported("immersive-vr")) {
+  //   console.log("XR supported");
+  //   document.body.appendChild(VRButton.createButton(renderer));
+  // }
   // controllers
 
   function onSelectStart() {
@@ -262,13 +259,17 @@ function handleController(controller) {
 
 function setCardsSphere() {
   for (let i = 0, l = cards.length; i < l; i++) {
-    const phi = Math.acos(-1 + (3 * i) / l);
+    const phi = Math.acos(-1 + (2 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
     // const object = new THREE.Object3D();
     const newPosition = new THREE.Vector3();
     const object = cards[i];
 
-    object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
+    object.moveTo(
+      newPosition.setFromSphericalCoords(50, phi, theta),
+      2000,
+      camera.position
+    );
     // object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
     // object.lookAt(camera.position);
     // lookAwayFrom(object, camera);
@@ -299,19 +300,34 @@ function setCardsHelix() {
   }
 }
 
+function setCardDeck(duration) {
+  setCardGrid(undefined, 0.06, 1, duration);
+}
+
+function setCardRise(duration = 10000, cardName) {
+  setCardGrid(undefined, 0.06, 1, duration);
+  const card = cards.find((card) => card.name === cardName);
+  console.log({ card });
+  card.moveTo(
+    card.group.position.clone().add(new THREE.Vector3(0, 10, 0)),
+    duration
+  );
+}
+
 function setCardGrid(
   cardWidthOffset = 15,
   cardZOffset = 13,
   cardsPerRow = 4,
-  duration = 10000
+  duration = 1000
 ) {
-  const cardWidth = 12;
+  const positionSkew = cardsPerRow / 2 - 0.5;
+
   for (let i = 0; i < cards.length; i++) {
     const object = cards[i];
     let newPosition = new THREE.Vector3();
 
     newPosition = newPosition.set(
-      (i % cardsPerRow) * cardWidthOffset - 1.5 * cardWidthOffset,
+      (i % cardsPerRow) * cardWidthOffset - positionSkew * cardWidthOffset,
       0,
       -Math.floor(i / cardsPerRow) * cardZOffset
     );
@@ -324,13 +340,11 @@ function setCardGrid(
   }
 }
 
-function lookAwayFrom(me, target) {
+function lookAwayFrom(object, target) {
   var v = new THREE.Vector3();
-  v.subVectors(me.position, target.position).add(me.position);
-  me.lookAt(v);
+  v.subVectors(object.position, target.position).add(object.position);
+  object.lookAt(v);
 }
-
-//
 
 function animate() {
   renderer.setAnimationLoop(render);
@@ -345,7 +359,6 @@ function cameraMapping() {
     cameraRotation.y != camera.rotation.y ||
     cameraRotation.z != camera.rotation.z
   ) {
-    // console.log("Changed", camera.position);
     cameraPosition = Object.assign({}, camera.position);
     cameraRotation = {
       x: camera.rotation.x,
@@ -366,35 +379,6 @@ function render() {
   handleController(controller2);
   cameraMapping();
   TWEEN.update();
-  // for (let card of cards) {
-  // card.step(1);
-  // }
-
-  // setCardGrid();
-  //
-
-  // const delta = clock.getDelta() * 0.8; // slow down simulation
-
-  // const range = 3 - radius;
-
-  // for (let i = 0; i < scene.children.length; i++) {
-  //   const object = scene.children[i];
-
-  //   object.position.x += object.userData.velocity.x * delta;
-  //   object.position.y += object.userData.velocity.y * delta;
-  //   object.position.z += object.userData.velocity.z * delta;
-
-  //   // keep objects inside scene
-
-  //   if (object.position.x < -range || object.position.x > range) {
-  //     object.position.x = THREE.MathUtils.clamp(
-  //       object.position.x,
-  //       -range,
-  //       range
-  //     );
-  //     object.userData.velocity.x = -object.userData.velocity.x;
-  //   }
-  // }
 
   renderer.render(scene, camera);
 }
@@ -437,11 +421,15 @@ function transform(targets, duration) {
     .start();
 }
 // table sphere helix grid
-const buttonIds = ["table", "sphere", "helix", "grid"];
-buttonIds.forEach((id) => {
-  // @FIXME: generic
-  document.getElementById(id).addEventListener("click", () => {
-    setCardGrid(undefined, undefined, undefined, 1000);
-  });
-});
-setCardGrid(undefined, 0.01);
+
+document
+  .getElementById("table")
+  .addEventListener("click", () => setCardDeck(1000));
+document.getElementById("sphere").addEventListener("click", setCardsSphere);
+document.getElementById("helix").addEventListener("click", setCardsHelix);
+document
+  .getElementById("grid")
+  .addEventListener("click", () => setCardGrid(undefined));
+// setCardGrid(undefined, 0.01);
+// setCardDeck(1000);
+setCardsSphere();
