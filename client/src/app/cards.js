@@ -1,3 +1,6 @@
+// Used to manipulate the whole scene of Forced Perspective - See BOIDS for the cards
+// @TODO: RENAME FILE
+
 import * as THREE from "three";
 import TWEEN from "@tweenjs/tween.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -12,9 +15,6 @@ let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
 const socket = io("https://localhost:80", { secure: true });
-
-const targets = { sphere: [] };
-const cardSizing = { x: 20, y: 20, z: 0.1 };
 
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
@@ -32,14 +32,7 @@ socket.on("camera-update", (msg) => {
   cameraPosition = Object.assign({}, camera.position);
 });
 
-// let scene;
-
 let count = 0;
-const radius = 0.08;
-let normal = new THREE.Vector3();
-const relativeVelocity = new THREE.Vector3();
-
-const clock = new THREE.Clock();
 const cards = [];
 
 init();
@@ -140,8 +133,6 @@ function init() {
   renderer.xr.enabled = true;
   document.body.appendChild(renderer.domElement);
   orbitControls = new OrbitControls(camera, renderer.domElement);
-
-  //
 
   // if ('xr' in navigator  &&navigator.xr?.isSessionSupported("immersive-vr")) {
   //   console.log("XR supported");

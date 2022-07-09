@@ -9,12 +9,13 @@ This allows two screens to be directly linked providing similar content, without
 - [ ] fix jittery issues with updates
 - [ ] Provide a cleaner UI to interact with
 - [ ] Make a interface for perspective mirroring
+- [ ] Decouple the Dom and interactive elements - Tidy up
 
 ## How to run
 
 - install dependencies `npm install`
 - Run dev server BE `npm run serve`
-- go to `https://localhost:8080` or `https://<IP>:8080` - Has to be secure
+- go to `https://localhost:3000` or `https://<IP>:3000` - Has to be secure
 
 ## Extras and Maintenance
 

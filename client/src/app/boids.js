@@ -1,3 +1,4 @@
+// Class for controlling individual cards (boids)
 import * as THREE from "three";
 import { randomNumber } from "./utils";
 import TWEEN from "@tweenjs/tween.js";
@@ -28,23 +29,6 @@ let faceDownMaterial = new THREE.MeshPhongMaterial({
   map: faceDownTexture,
   shininess: 40,
 });
-
-let pips = [
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "11-JACK",
-  "12-QUEEN",
-  "13-KING",
-];
-let suits = ["CLUB", "HEART", "SPADE", "DIAMOND"];
 
 export class Boid extends THREE.Object3D {
   /**

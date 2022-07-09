@@ -6,6 +6,8 @@ import { BoxLineGeometry } from "../assets/jsm/geometries/BoxLineGeometry.js";
 import { VRButton } from "../assets/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "../assets/jsm/webxr/XRControllerModelFactory.js";
 
+// ONLY FOR TESTING PURPOSES - SEE CARDS.JS
+
 let camera, scene, renderer, orbitControls;
 let controller1, controller2;
 let controllerGrip1, controllerGrip2;
