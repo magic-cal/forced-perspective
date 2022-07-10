@@ -1,3 +1,4 @@
+// "use strict";
 // Class for controlling individual cards (boids)
 import * as THREE from "three";
 import { randomNumber } from "./utils";
@@ -103,6 +104,8 @@ export class Boid extends THREE.Object3D {
     this.group = new THREE.Group();
     this.group.add(this.mesh);
     this.group.position.set(...this.position);
+
+    this.uuid = this.mesh.uuid;
     // this.group.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
     this.scene.add(this.group);
   }
@@ -119,6 +122,27 @@ export class Boid extends THREE.Object3D {
 
   lookAt(target) {
     this.group.lookAt(target);
+  }
+
+  setFaceValue(suit, pip) {
+    this.name = `${suit}-${pip}`;
+    let faceUpTexture = txtLoader.load(`/cards/${suit}-${pip}.svg`);
+    let faceUpMaterial = new THREE.MeshPhongMaterial({
+      color: colorLight,
+      map: faceUpTexture,
+      transparent: true,
+      shininess: 40,
+    });
+    this.mesh.material = [
+      darkMaterial,
+      darkMaterial,
+      darkMaterial,
+      darkMaterial,
+      faceUpMaterial,
+      faceDownMaterial,
+    ];
+
+    this.mesh.material.needsUpdate = true;
   }
 
   moveTo(target, duration, facingDirection, callback) {

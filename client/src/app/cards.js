@@ -1,3 +1,4 @@
+"use strict";
 // Used to manipulate the whole scene of Forced Perspective - See BOIDS for the cards
 // @TODO: RENAME FILE
 
@@ -8,6 +9,7 @@ import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import io from "socket.io-client";
 import { Boid } from "./boids";
+import { boidsTick, boidsLookAt, getBoidById } from "./boidManager.js";
 
 let camera, scene, renderer, orbitControls;
 let controller1, controller2;
@@ -15,6 +17,8 @@ let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
 const socket = io("https://localhost:80", { secure: true });
+let raycaster = new THREE.Raycaster(); // create once
+let mouse = new THREE.Vector2(); // create once
 
 socket.on("camera-update", (msg) => {
   let pos = msg.pos;
@@ -84,20 +88,22 @@ function init() {
 
   let pips = [
     "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
+    // "2",
+    // "3",
+    // "4",
+    // "5",
+    // "6",
+    // "7",
+    // "8",
+    // "9",
+    // "10",
+    // "11",
+    // "12",
+    // "13",
   ];
-  let suits = ["C", "H", "S", "D"];
+  let suits = [
+    "C", //"H", "S", "D"
+  ];
   let i = 0;
   for (const pip of pips) {
     for (const suit of suits) {
@@ -133,6 +139,8 @@ function init() {
   renderer.xr.enabled = true;
   document.body.appendChild(renderer.domElement);
   orbitControls = new OrbitControls(camera, renderer.domElement);
+
+  //
 
   // if ('xr' in navigator  &&navigator.xr?.isSessionSupported("immersive-vr")) {
   //   console.log("XR supported");
@@ -234,6 +242,25 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function onDocumentMouseDown(event) {
+  // Adjust mouse offset
+  let mouse = { x: 0, y: 0 };
+  mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+  mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  let intersects = raycaster.intersectObjects(scene.children, true);
+  if (!intersects.length) {
+    return;
+  }
+
+  const card = getBoidById(intersects[0]?.object.uuid, cards);
+  console.log(card?.name);
+  // intersects[0].instanceId;
+  card.setFaceValue("H", "13");
+}
+
 function handleController(controller) {
   if (controller.userData.isSelecting) {
     const object = scene.children[count++];
@@ -327,12 +354,13 @@ function setCardGrid(
     const lookAtPosition = newPosition
       .clone()
       .add(new THREE.Vector3(0, 0, 1000));
+
     object.moveTo(newPosition, duration, lookAtPosition);
   }
 }
 
 function lookAwayFrom(object, target) {
-  var v = new THREE.Vector3();
+  let v = new THREE.Vector3();
   v.subVectors(object.position, target.position).add(object.position);
   object.lookAt(v);
 }
@@ -369,6 +397,8 @@ function render() {
   handleController(controller1);
   handleController(controller2);
   cameraMapping();
+  boidsTick(cards);
+  boidsLookAt(cards, camera.position);
   TWEEN.update();
 
   renderer.render(scene, camera);
@@ -421,6 +451,7 @@ document.getElementById("helix").addEventListener("click", setCardsHelix);
 document
   .getElementById("grid")
   .addEventListener("click", () => setCardGrid(undefined));
+document.addEventListener("mousedown", onDocumentMouseDown);
 // setCardGrid(undefined, 0.01);
 // setCardDeck(1000);
 setCardsSphere();
