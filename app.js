@@ -34,27 +34,9 @@ socketServer.io.on("connection", (socket) => {
     let update = { pos: data.pos, rot: data.rot };
     socket.broadcast.emit("camera-update", update);
   });
+  socket.on("mouse-down", (data) => {
+    console.log({ data });
+    let update = { pos: data.pos };
+    socket.broadcast.emit("mouse-down", update);
+  });
 });
-
-// console.log(findPrimes(100));
-
-// // find primes below 1000 using the Sieve of Eratosthenes
-// function findPrimes(n) {
-//   var sieve = [],
-//     i,
-//     j,
-//     primes = [];
-//   for (i = 2; i <= n; i++) {
-//     if (!sieve[i]) {
-//       // i has not been marked -- it is prime
-//       primes.push(i);
-//       for (j = i << 1; j <= n; j += i) {
-//         console.log(j);
-//         sieve[j] = true;
-//       }
-//     }
-//   }
-//   return primes;
-// }
-
-//

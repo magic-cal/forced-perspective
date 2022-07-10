@@ -41,6 +41,10 @@ socket.on("camera-update", (msg) => {
   cameraPosition = Object.assign({}, camera.position);
 });
 
+socket.on("mouse-down", (msg) => {
+  onMouseDown(null, msg.pos);
+});
+
 let count = 0;
 const cards = [];
 
@@ -145,10 +149,10 @@ function init() {
 
   //
 
-  // if ('xr' in navigator  &&navigator.xr?.isSessionSupported("immersive-vr")) {
-  //   console.log("XR supported");
-  //   document.body.appendChild(VRButton.createButton(renderer));
-  // }
+  if ("xr" in navigator && navigator.xr?.isSessionSupported("immersive-vr")) {
+    console.log("XR supported");
+    document.body.appendChild(VRButton.createButton(renderer));
+  }
   // controllers
 
   function onSelectStart() {
@@ -245,11 +249,13 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function onDocumentMouseDown(event) {
+function onMouseDown(event, mousePosition) {
   // Adjust mouse offset
-  let mouse = { x: 0, y: 0 };
-  mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-  mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+  let mouse = mousePosition ?? { x: 0, y: 0 };
+  if (!mousePosition) {
+    mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+    mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+  }
 
   raycaster.setFromCamera(mouse, camera);
 
@@ -262,21 +268,60 @@ function onDocumentMouseDown(event) {
   console.log(card?.name);
 
   selectBoid(card, camera.position);
+
+  if (!mousePosition && card) {
+    emitClick(mouse, card.uuid);
+  }
   // intersects[0].instanceId;
   // card.setFaceValue("H", "13");
 }
 
+function emitClick(mousePosition, itemId) {
+  socket.emit("mouse-down", {
+    pos: mousePosition,
+    id: itemId,
+  });
+}
+
 function handleController(controller) {
   if (controller.userData.isSelecting) {
-    const object = scene.children[count++];
+    const tempMatrix = new THREE.Matrix4();
+    tempMatrix.identity().extractRotation(controller.matrixWorld);
+    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+    raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+    const intersections = raycaster.intersectObjects(scene.children, true);
 
-    object.position.copy(controller.position);
-    object.userData.velocity.x = (Math.random() - 0.5) * 3;
-    object.userData.velocity.y = (Math.random() - 0.5) * 3;
-    object.userData.velocity.z = Math.random() - 9;
-    object.userData.velocity.applyQuaternion(controller.quaternion);
+    scene.add(
+      new THREE.ArrowHelper(
+        raycaster.ray.direction,
+        raycaster.ray.origin,
+        300,
+        0xff0000
+      )
+    );
 
-    if (count === scene.children.length) count = 0;
+    console.log({ intersections });
+
+    if (!intersections.length) {
+      return;
+    }
+
+    intersections.forEach((x) => {
+      const card = getBoidById(x.object.uuid, cards);
+      if (card) {
+        selectBoid(card, camera.position);
+        return;
+      }
+    });
+
+    // const object = scene.children[count++];
+    // object.position.copy(controller.position);
+    // object.userData.velocity.x = (Math.random() - 0.5) * 3;
+    // object.userData.velocity.y = (Math.random() - 0.5) * 3;
+    // object.userData.velocity.z = Math.random() - 9;
+    // object.userData.velocity.applyQuaternion(controller.quaternion);
+    // if (count === scene.children.length) count = 0;
+    // Click
   }
 }
 
@@ -290,6 +335,40 @@ function setCardsSphere() {
 
     object.moveTo(
       newPosition.setFromSphericalCoords(50, phi, theta),
+      2000,
+      camera.position
+    );
+    // object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
+    // object.lookAt(camera.position);
+    // lookAwayFrom(object, camera);
+    // targets.sphere.push(object);
+  }
+}
+
+function setCardsSphereAboutTarget() {
+  for (let i = 0, l = cards.length; i < l; i++) {
+    const phi = Math.acos(-1 + (2 * i) / l);
+    const theta = Math.sqrt(l * Math.PI) * phi;
+    // const object = new THREE.Object3D();
+    const newPosition = new THREE.Vector3();
+    const object = cards[i];
+    console.log(
+      { newPosition }
+      // newPosition.setFromSphericalCoords(50, phi, theta)
+    );
+    console.log(
+      // { newPosition },
+      newPosition.setFromSphericalCoords(75, phi, theta)
+    );
+
+    newPosition.add({
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z,
+    });
+
+    object.moveTo(
+      newPosition, //.setFromSphericalCoords(50, phi, theta),
       2000,
       camera.position
     );
@@ -402,6 +481,7 @@ function render() {
   handleController(controller1);
   handleController(controller2);
   cameraMapping();
+  checkRotation();
   boidsTick(cards);
   boidsLookAt(cards, camera.position);
   TWEEN.update();
@@ -448,15 +528,28 @@ function transform(targets, duration) {
 }
 // table sphere helix grid
 
+function checkRotation() {
+  // if (keyboard.pressed("left")) {
+  // camera.rotation.y += 0.005;
+  //   camera.rotation.z++;
+  // } else if (keyboard.pressed("right")) {
+  //   camera.rotation.x--;
+  //   camera.rotation.z--;
+  // }
+  // camera.lookAt(scene.rotation);
+}
+
 document
   .getElementById("table")
   .addEventListener("click", () => setCardDeck(1000));
-document.getElementById("sphere").addEventListener("click", setCardsSphere);
+document
+  .getElementById("sphere")
+  .addEventListener("click", setCardsSphereAboutTarget);
 document.getElementById("helix").addEventListener("click", setCardsHelix);
 document
   .getElementById("grid")
   .addEventListener("click", () => setCardGrid(undefined));
-document.addEventListener("mousedown", onDocumentMouseDown);
+document.addEventListener("mousedown", onMouseDown);
 // setCardGrid(undefined, 0.01);
 // setCardDeck(1000);
 setCardsSphere();
