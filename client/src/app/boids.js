@@ -2,7 +2,7 @@
 // Class for controlling individual cards (boids)
 import * as THREE from "three";
 import { randomNumber } from "./utils";
-import TWEEN from "@tweenjs/tween.js";
+import TWEEN, { Group } from "@tweenjs/tween.js";
 
 const defaultParams = {
   sizing: { x: 20, y: 20, z: 0.1 },
@@ -150,27 +150,57 @@ export class Boid extends THREE.Object3D {
     this.tween = new TWEEN.Tween(this.group.position)
       .to(target, duration)
       .easing(TWEEN.Easing.Quadratic.InOut)
-      .onUpdate(() => {
-        if (facingDirection) {
-          this.group.lookAt(facingDirection);
-        }
-      })
       .onComplete(() => {
-        if (facingDirection) {
-          this.group.lookAt(facingDirection);
-        }
+        // if (facingDirection) {
+        //   this.lookTo(facingDirection, 10000);
+        // }
         if (callback) callback();
         this.tween = null;
       })
       .start();
+    if (facingDirection) {
+      this.lookAway(facingDirection, duration, target);
+    }
   }
 
-  lookTo(target, duration, callback = () => console.log("done")) {
-    let tween = new TWEEN.Tween(this.group.rotation)
-      .to(target, duration)
+  lookAwayFrom(object, target) {
+    let v = new THREE.Vector3();
+    v.subVectors(object.position, target).add(object.position);
+    object.lookAt(v);
+  }
+
+  tweenRotation(newRotation, durationMs) {
+    new TWEEN.Tween(this.group.rotation)
+      .to(
+        {
+          x: newRotation.x,
+          y: newRotation.y,
+          z: newRotation.z,
+        },
+        durationMs
+      )
       .easing(TWEEN.Easing.Quadratic.InOut)
       .start();
-    //   .callback(callback);
+  }
+
+  lookTo(target, durationMs, fromPosition = null) {
+    const groupCopy = this.group.clone();
+    if (fromPosition) {
+      groupCopy.position.set(fromPosition.x, fromPosition.y, fromPosition.z);
+    }
+    groupCopy.lookAt(target);
+
+    this.tweenRotation(groupCopy.rotation, durationMs);
+  }
+
+  lookAway(target, durationMs, fromPosition = null) {
+    const groupCopy = this.group.clone();
+    if (fromPosition) {
+      groupCopy.position.set(fromPosition.x, fromPosition.y, fromPosition.z);
+    }
+    this.lookAwayFrom(groupCopy, target);
+
+    this.tweenRotation(groupCopy.rotation, durationMs);
   }
 
   step(time) {

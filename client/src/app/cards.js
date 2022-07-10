@@ -9,14 +9,19 @@ import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import io from "socket.io-client";
 import { Boid } from "./boids";
-import { boidsTick, boidsLookAt, getBoidById } from "./boidManager.js";
+import {
+  boidsTick,
+  boidsLookAt,
+  getBoidById,
+  selectBoid,
+} from "./boidManager.js";
 
 let camera, scene, renderer, orbitControls;
 let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
-const socket = io("https://localhost:80", { secure: true });
+const socket = io("https://192.168.1.19:80", { secure: true });
 let raycaster = new THREE.Raycaster(); // create once
 let mouse = new THREE.Vector2(); // create once
 
@@ -88,22 +93,20 @@ function init() {
 
   let pips = [
     "1",
-    // "2",
-    // "3",
-    // "4",
-    // "5",
-    // "6",
-    // "7",
-    // "8",
-    // "9",
-    // "10",
-    // "11",
-    // "12",
-    // "13",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
   ];
-  let suits = [
-    "C", //"H", "S", "D"
-  ];
+  let suits = ["C", "H", "S", "D"];
   let i = 0;
   for (const pip of pips) {
     for (const suit of suits) {
@@ -257,8 +260,10 @@ function onDocumentMouseDown(event) {
 
   const card = getBoidById(intersects[0]?.object.uuid, cards);
   console.log(card?.name);
+
+  selectBoid(card, camera.position);
   // intersects[0].instanceId;
-  card.setFaceValue("H", "13");
+  // card.setFaceValue("H", "13");
 }
 
 function handleController(controller) {
