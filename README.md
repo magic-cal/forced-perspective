@@ -1,7 +1,7 @@
 # Forced-perspective
 
 This is a test to run two separate instances of a VR environnement which are linked by a socket
-This allows two screens to be directly linked providing similar content, without having to be a direct mirror
+This allows two screens to be directly linked providing similar content to each.
 
 ## TODO:
 
@@ -11,6 +11,7 @@ This allows two screens to be directly linked providing similar content, without
 - [ ] Provide a cleaner UI to interact with
 - [ ] Make a interface for perspective mirroring
 - [ ] Decouple the Dom and interactive elements - Tidy up
+- [ ] Add better animations for the cards
 
 ## How to run
 
