@@ -11,6 +11,8 @@ This allows two screens to be directly linked providing similar content to each.
 - [ ] Provide a cleaner UI to interact with
 - [ ] Make a interface for perspective mirroring
 - [ ] Decouple the Dom and interactive elements - Tidy up
+- [ ] Move the socket to a separate file
+- [ ] Move the cards logic to a boids manager
 - [ ] Add better animations for the cards
 
 ## How to run
@@ -28,3 +30,21 @@ This allows two screens to be directly linked providing similar content to each.
 
 - Certs created using openssl
 - Ensure BE is run before FE to make the certs work
+
+## New proposed Structure
+
+- Scene Manager
+- - Scene
+- - Camera
+- - Background
+- - Lights
+- Boids Manager
+- - Boids
+
+All should have access to the scene.
+BoidsManager should deal with the boids logic movement direction but not the actual movement.
+Boids manager should be able to plot the positions of the boids and pass to a method to tween the movement.
+Boids manager should be able to check intersections with the raycast and collisions within the scene
+Boids should deal with the movement and the interaction with the scene.
+Boids should have access to neighbours and the scene.
+Controllers should be able to interact with the scene but not directly with the boids.
