@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 // webpack config file
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "/client/src/app/cards.js"),
+  entry: path.join(__dirname, "/client/src/app/index.js"),
   output: {
     filename: "bundle.js",
     path: path.resolve(__dirname, "client/dist"),
@@ -36,7 +36,7 @@ module.exports = {
     // filename output defined above.
     new HtmlWebpackPlugin({
       inject: true,
-      template: path.join(__dirname, "/client/src/public/cards.html"),
+      template: path.join(__dirname, "/client/src/public/index.html"),
     }),
   ],
 };

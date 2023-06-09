@@ -12,7 +12,7 @@ const { connect } = require("http2");
 app.set("port", process.env.PORT || 8080);
 
 app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "/client/src/public/cards.html"));
+  res.sendFile(path.join(__dirname, "/client/src/public/index.html"));
 });
 
 app.use(express.static(path.join(__dirname, "/client")));
@@ -30,7 +30,6 @@ const socketServer = new SocketService(80, 80);
 socketServer.startServer();
 socketServer.io.on("connection", (socket) => {
   socket.on("camera-changed", (data) => {
-    // console.log({ data });
     let update = { pos: data.pos, rot: data.rot };
     socket.broadcast.emit("camera-update", update);
   });

@@ -14,6 +14,7 @@ import {
   boidsLookAt,
   getBoidById,
   selectBoid,
+  getSphere,
 } from "./boidManager.js";
 
 let camera, scene, renderer, orbitControls;
@@ -64,13 +65,6 @@ function init() {
   camera.position.set(0, 0, 50);
   camera.zoom = 0.1;
   cameraPosition = Object.assign({}, camera.position);
-
-  // scene = new THREE.LineSegments(
-  //   new BoxLineGeometry(6, 6, 6, 10, 10, 10),
-  //   new THREE.LineBasicMaterial({ color: 0x808080 })
-  // );
-  // scene.geometry.translate(0, 3, 0);
-  // scene.add(scene);
 
   scene.add(new THREE.HemisphereLight(0x606060, 0x404040));
 
@@ -137,8 +131,6 @@ function init() {
     }
   }
 
-  //
-
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -203,9 +195,6 @@ function init() {
     controllerModelFactory.createControllerModel(controllerGrip2)
   );
   scene.add(controllerGrip2);
-
-  //
-
   window.addEventListener("resize", onWindowResize);
 }
 
@@ -265,15 +254,13 @@ function onMouseDown(event, mousePosition) {
   }
 
   const card = getBoidById(intersects[0]?.object.uuid, cards);
-  console.log(card?.name);
 
   selectBoid(card, camera.position);
 
   if (!mousePosition && card) {
     emitClick(mouse, card.uuid);
   }
-  // intersects[0].instanceId;
-  // card.setFaceValue("H", "13");
+  // card.setFaceValue("H", "13"); Set the face value of the card
 }
 
 function emitClick(mousePosition, itemId) {
@@ -313,15 +300,6 @@ function handleController(controller) {
         return;
       }
     });
-
-    // const object = scene.children[count++];
-    // object.position.copy(controller.position);
-    // object.userData.velocity.x = (Math.random() - 0.5) * 3;
-    // object.userData.velocity.y = (Math.random() - 0.5) * 3;
-    // object.userData.velocity.z = Math.random() - 9;
-    // object.userData.velocity.applyQuaternion(controller.quaternion);
-    // if (count === scene.children.length) count = 0;
-    // Click
   }
 }
 
@@ -329,7 +307,6 @@ function setCardsSphere() {
   for (let i = 0, l = cards.length; i < l; i++) {
     const phi = Math.acos(-1 + (2 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
-    // const object = new THREE.Object3D();
     const newPosition = new THREE.Vector3();
     const object = cards[i];
 
@@ -338,28 +315,27 @@ function setCardsSphere() {
       2000,
       camera.position
     );
-    // object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
-    // object.lookAt(camera.position);
-    // lookAwayFrom(object, camera);
-    // targets.sphere.push(object);
   }
 }
+
+const setBoidsSphere = () => {
+  const cameraPosition = camera.position;
+  const spherePoints = getSphere(cameraPosition, 50, cards.length);
+
+  for (let i = 0, l = cards.length; i < l; i++) {
+    const object = cards[i];
+    const newPosition = spherePoints[i];
+    object.moveTo(newPosition, 2000, camera.position);
+  }
+};
 
 function setCardsSphereAboutTarget() {
   for (let i = 0, l = cards.length; i < l; i++) {
     const phi = Math.acos(-1 + (2 * i) / l);
     const theta = Math.sqrt(l * Math.PI) * phi;
-    // const object = new THREE.Object3D();
+
     const newPosition = new THREE.Vector3();
     const object = cards[i];
-    console.log(
-      { newPosition }
-      // newPosition.setFromSphericalCoords(50, phi, theta)
-    );
-    console.log(
-      // { newPosition },
-      newPosition.setFromSphericalCoords(75, phi, theta)
-    );
 
     newPosition.add({
       x: camera.position.x,
@@ -367,15 +343,7 @@ function setCardsSphereAboutTarget() {
       z: camera.position.z,
     });
 
-    object.moveTo(
-      newPosition, //.setFromSphericalCoords(50, phi, theta),
-      2000,
-      camera.position
-    );
-    // object.moveTo(newPosition.setFromSphericalCoords(3, phi, theta), 2000);
-    // object.lookAt(camera.position);
-    // lookAwayFrom(object, camera);
-    // targets.sphere.push(object);
+    object.moveTo(newPosition, 2000, camera.position);
   }
 }
 
@@ -391,14 +359,6 @@ function setCardsHelix() {
       5000,
       camera.position
     );
-
-    // vector.x = object.position.x * 2;
-    // vector.y = object.position.y;
-    // vector.z = object.position.z * 2;
-
-    // object.lookAt(camera.position);
-
-    // targets.helix.push(object);
   }
 }
 
@@ -434,7 +394,6 @@ function setCardGrid(
       -Math.floor(i / cardsPerRow) * cardZOffset
     );
 
-    // console.log({ newPosition });
     const lookAtPosition = newPosition
       .clone()
       .add(new THREE.Vector3(0, 0, 1000));
@@ -483,7 +442,6 @@ function render() {
   cameraMapping();
   checkRotation();
   boidsTick(cards);
-  boidsLookAt(cards, camera.position);
   TWEEN.update();
 
   renderer.render(scene, camera);
@@ -529,14 +487,7 @@ function transform(targets, duration) {
 // table sphere helix grid
 
 function checkRotation() {
-  // if (keyboard.pressed("left")) {
-  // camera.rotation.y += 0.005;
-  //   camera.rotation.z++;
-  // } else if (keyboard.pressed("right")) {
-  //   camera.rotation.x--;
-  //   camera.rotation.z--;
-  // }
-  // camera.lookAt(scene.rotation);
+  // @TODO: keyboard controls
 }
 
 document
@@ -550,6 +501,4 @@ document
   .getElementById("grid")
   .addEventListener("click", () => setCardGrid(undefined));
 document.addEventListener("mousedown", onMouseDown);
-// setCardGrid(undefined, 0.01);
-// setCardDeck(1000);
 setCardsSphere();
