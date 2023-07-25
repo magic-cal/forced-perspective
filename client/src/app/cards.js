@@ -4,7 +4,7 @@
 
 import * as THREE from "three";
 import TWEEN from "@tweenjs/tween.js";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { OrbitControls } from "three-orbit-controls";
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import io from "socket.io-client";
