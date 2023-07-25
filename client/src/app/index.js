@@ -23,7 +23,7 @@ let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
-const socket = io("https://192.168.1.19:80", { secure: true });
+const socket = io("https://192.168.68.109:80", { secure: true });
 let raycaster = new THREE.Raycaster(); // create once
 let mouse = new THREE.Vector2(); // create once
 
@@ -49,7 +49,6 @@ socket.on("mouse-down", (msg) => {
   onMouseDown(null, msg.pos);
 });
 
-let count = 0;
 const cards = [];
 
 init();
@@ -113,19 +112,11 @@ function init() {
     for (const suit of suits) {
       i++;
 
-      // card.position.x =
-      // card.position.y =
-      // card.position.z =
-
       const position = {
         x: Math.random() * 10 - 5,
         y: Math.random() * 5 - 5,
         z: Math.random() * 4 - 10,
       };
-
-      // card.position.x = 0.09 * i;
-      // card.position.y = 0;
-      // card.position.z = 0.05 * i;
 
       const boid = new Boid(scene, { position, suit, pip });
 

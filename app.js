@@ -18,8 +18,8 @@ app.get("/", function (req, res) {
 app.use(express.static(path.join(__dirname, "/client")));
 
 const options = {
-  key: fs.readFileSync("key.pem", "utf8"),
-  cert: fs.readFileSync("certificate.pem", "utf8"),
+  key: fs.readFileSync("server.key", "utf8"),
+  cert: fs.readFileSync("server.cert", "utf8"),
   passphrase: process.env.HTTPS_PASSPHRASE || "",
 };
 const server = https.createServer(options, app).listen(app.get("port"), () => {
@@ -33,6 +33,7 @@ socketServer.io.on("connection", (socket) => {
     let update = { pos: data.pos, rot: data.rot };
     socket.broadcast.emit("camera-update", update);
   });
+
   socket.on("mouse-down", (data) => {
     console.log({ data });
     let update = { pos: data.pos };

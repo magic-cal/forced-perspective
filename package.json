@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "nodemon app.js",
     "build": "webpack",
-    "start": "webpack-dev-server --hot --https",
+    "start": "webpack-dev-server --hot",
     "reboot": "nodemon webpack"
   },
   "author": "",

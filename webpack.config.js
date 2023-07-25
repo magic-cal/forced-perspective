@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+var fs = require("fs");
 
 // webpack config file
 module.exports = {
@@ -13,6 +14,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, "/client"),
     },
+    server: "https",
     port: 3000,
   },
   module: {

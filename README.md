@@ -14,6 +14,8 @@ This allows two screens to be directly linked providing similar content to each.
 - [ ] Move the socket to a separate file
 - [ ] Move the cards logic to a boids manager
 - [ ] Add better animations for the cards
+- [ ] Not connecting with phone
+- [ ] Certificate issue with local dev
 
 ## How to run
 
@@ -29,6 +31,7 @@ This allows two screens to be directly linked providing similar content to each.
 ## Extras and Maintenance
 
 - Certs created using openssl
+- `openssl req -nodes -new -x509 -keyout server.key -out server.cert`
 - Ensure BE is run before FE to make the certs work
 
 ## New proposed Structure
