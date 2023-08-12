@@ -23,7 +23,7 @@ let controller1, controller2;
 let controllerGrip1, controllerGrip2;
 let cameraPosition;
 let cameraRotation;
-const socket = io("https://192.168.68.109:80", { secure: true });
+const socket = io("https://localhost:80", { secure: true });
 let raycaster = new THREE.Raycaster(); // create once
 let mouse = new THREE.Vector2(); // create once
 

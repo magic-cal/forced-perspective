@@ -18,8 +18,8 @@ app.get("/", function (req, res) {
 app.use(express.static(path.join(__dirname, "/client")));
 
 const options = {
-  key: fs.readFileSync("server.key", "utf8"),
-  cert: fs.readFileSync("server.cert", "utf8"),
+  key: fs.readFileSync("example.key", "utf8"),
+  cert: fs.readFileSync("example.crt", "utf8"),
   passphrase: process.env.HTTPS_PASSPHRASE || "",
 };
 const server = https.createServer(options, app).listen(app.get("port"), () => {
